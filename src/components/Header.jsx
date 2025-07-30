@@ -27,8 +27,17 @@ const CyberpunkHeader = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
+  const [isLoaded, setIsLoaded] = useState(false);
   const mobileNavRef = useRef(null);
   const bottomNavRef = useRef(null);
+
+  // Trigger animation on mount
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoaded(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Determine active section based on scroll position
   const updateActiveSection = useCallback(() => {
@@ -83,7 +92,7 @@ const CyberpunkHeader = () => {
       
       <div className="cp-container">
         {/* Logo */}
-        <div className="cp-logo__wrapper">
+        <div className={`cp-logo__wrapper ${isLoaded ? 'cp-logo__wrapper--loaded' : ''}`}>
           <a href="#home" className="cp-logo" onClick={(e) => {
             e.preventDefault();
             handleNavClick('home');
@@ -102,8 +111,8 @@ const CyberpunkHeader = () => {
         {/* Desktop Navigation */}
         <nav className="cp-nav">
           <ul className="cp-nav__list">
-            {NAVIGATION_ITEMS.map((item) => (
-              <li key={item.id} className="cp-nav__item">
+            {NAVIGATION_ITEMS.map((item, index) => (
+              <li key={item.id} className={`cp-nav__item ${isLoaded ? 'cp-nav__item--loaded' : ''}`} style={{ animationDelay: `${0.1 + index * 0.1}s` }}>
                 <a 
                   href={`#${item.id}`} 
                   className={`cp-nav__link ${activeSection === item.id ? 'cp-nav__link--active' : ''}`}
@@ -121,7 +130,7 @@ const CyberpunkHeader = () => {
             ))}
           </ul>
           
-          <a href="#contact" className="cp-btn" onClick={(e) => {
+          <a href="#contact" className={`cp-btn ${isLoaded ? 'cp-btn--loaded' : ''}`} onClick={(e) => {
             e.preventDefault();
             handleNavClick('contact');
           }}>
@@ -132,7 +141,7 @@ const CyberpunkHeader = () => {
         
         {/* Mobile Toggle */}
         <button 
-          className="cp-toggle"
+          className={`cp-toggle ${isLoaded ? 'cp-toggle--loaded' : ''}`}
           onClick={toggleMenu}
           aria-label="Toggle navigation menu"
         >
@@ -145,11 +154,12 @@ const CyberpunkHeader = () => {
         {/* Mobile Navigation */}
         <div className={`cp-mobile ${isMenuOpen ? 'cp-mobile--open' : ''}`} ref={mobileNavRef}>
           <div className="cp-mobile__container" ref={bottomNavRef}>
-            {NAVIGATION_ITEMS.map((item) => (
+            {NAVIGATION_ITEMS.map((item, index) => (
               <a
                 key={item.id}
                 href={`#${item.id}`}
-                className={`cp-mobile__item ${activeSection === item.id ? 'cp-mobile__item--active' : ''}`}
+                className={`cp-mobile__item ${activeSection === item.id ? 'cp-mobile__item--active' : ''} ${isMenuOpen ? 'cp-mobile__item--animate' : ''}`}
+                style={{ animationDelay: `${0.2 + index * 0.1}s` }}
                 onClick={(e) => {
                   e.preventDefault();
                   handleNavClick(item.id);
@@ -236,10 +246,18 @@ const CyberpunkHeader = () => {
           padding: 0 1.5rem;
         }
         
-        /* Logo styling */
+        /* Logo styling with animation */
         .cp-logo__wrapper {
           position: relative;
           z-index: 2;
+          transform: translateY(-20px);
+          opacity: 0;
+          transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .cp-logo__wrapper--loaded {
+          transform: translateY(0);
+          opacity: 1;
         }
         
         .cp-logo {
@@ -304,8 +322,33 @@ const CyberpunkHeader = () => {
           padding: 0;
         }
         
+        /* Navigation items with fall animation */
         .cp-nav__item {
           margin: 0 0.5rem;
+          transform: translateY(-30px);
+          opacity: 0;
+          animation: none;
+        }
+        
+        .cp-nav__item--loaded {
+          animation: navItemFall 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        
+        @keyframes navItemFall {
+          0% {
+            transform: translateY(-30px);
+            opacity: 0;
+          }
+          60% {
+            transform: translateY(5px);
+          }
+          80% {
+            transform: translateY(-2px);
+          }
+          100% {
+            transform: translateY(0);
+            opacity: 1;
+          }
         }
         
         .cp-nav__link {
@@ -337,7 +380,7 @@ const CyberpunkHeader = () => {
           border-radius: 2px;
         }
         
-        /* Contact button */
+        /* Contact button with animation */
         .cp-btn {
           display: flex;
           align-items: center;
@@ -349,6 +392,13 @@ const CyberpunkHeader = () => {
           color: white;
           text-decoration: none;
           transition: all 0.3s ease;
+          transform: translateY(-30px);
+          opacity: 0;
+        }
+        
+        .cp-btn--loaded {
+          animation: navItemFall 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+          animation-delay: 0.7s;
         }
         
         .cp-btn:hover {
@@ -361,7 +411,7 @@ const CyberpunkHeader = () => {
           margin-right: 0.5rem;
         }
         
-        /* Mobile toggle button */
+        /* Mobile toggle button with animation */
         .cp-toggle {
           display: none;
           background: none;
@@ -370,6 +420,13 @@ const CyberpunkHeader = () => {
           cursor: pointer;
           position: relative;
           z-index: 5;
+          transform: translateY(-30px);
+          opacity: 0;
+        }
+        
+        .cp-toggle--loaded {
+          animation: navItemFall 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+          animation-delay: 0.3s;
         }
         
         .cp-toggle__icon {
@@ -396,7 +453,7 @@ const CyberpunkHeader = () => {
           opacity: 1;
         }
         
-        /* Mobile navigation */
+        /* Mobile navigation with simple elegant drop */
         .cp-mobile {
           position: fixed;
           bottom: 0;
@@ -416,7 +473,6 @@ const CyberpunkHeader = () => {
           position: absolute;
           bottom: 20px;
           left: 50%;
-          transform: translateX(-50%);
           width: 90%;
           max-width: 420px;
           height: 70px;
@@ -428,8 +484,29 @@ const CyberpunkHeader = () => {
           align-items: center;
           border: 1px solid rgba(0, 255, 204, 0.2);
           box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+          
+          /* Simple initial state */
+          transform: translateX(-50%) translateY(-100px);
+          opacity: 0;
+          transition: none;
         }
         
+        .cp-mobile--open .cp-mobile__container {
+          animation: containerSimpleDrop 0.5s ease-out forwards;
+        }
+        
+        @keyframes containerSimpleDrop {
+          0% {
+            transform: translateX(-50%) translateY(-100px);
+            opacity: 0;
+          }
+          100% {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+          }
+        }
+        
+        /* Mobile items with dramatic but simpler animation */
         .cp-mobile__item {
           display: flex;
           flex-direction: column;
@@ -440,6 +517,26 @@ const CyberpunkHeader = () => {
           width: 20%;
           position: relative;
           transition: color 0.3s ease;
+          transform: translateY(20px);
+          opacity: 0;
+        }
+        
+        .cp-mobile__item--animate {
+          animation: mobileItemRiseUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        
+        @keyframes mobileItemRiseUp {
+          0% {
+            transform: translateY(20px);
+            opacity: 0;
+          }
+          60% {
+            transform: translateY(-3px);
+          }
+          100% {
+            transform: translateY(0);
+            opacity: 1;
+          }
         }
         
         .cp-mobile__item:hover {
